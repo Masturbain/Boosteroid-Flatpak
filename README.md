@@ -1,13 +1,9 @@
 # Boosteroid Flatpak
 
 This flatpak is based on the official Linux "portable" executable from Boosteroid.
-<br>
-<br>
-<br>
+
 A precompiled Flatpak is available from download in the releases.
-<br>
-<br>
-<br>
+
 You can also compile it yourself from the files given in the repo by following these instructions : 
 
 - Install required dependencies : flatpak, flatpak builder
