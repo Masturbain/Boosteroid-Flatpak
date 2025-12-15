@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Boosteroid
+Comment=Cloud Gaming Client
+Exec=start-boosteroid.sh
+Icon=com.boosteroid.Client
+Type=Application
+Categories=Game;Network;
+StartupWMClass=boosteroid

@@ -1,0 +1,67 @@
+app-id: com.boosteroid.Client
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+base: org.electronjs.Electron2.BaseApp
+base-version: '24.08'
+
+command: start-boosteroid.sh
+finish-args:
+  - --share=network
+  - --socket=x11
+  - --socket=wayland
+  - --socket=pulseaudio
+  - --device=all
+  - --share=ipc
+
+modules:
+  - name: numactl
+    buildsystem: autotools
+    sources:
+      - type: archive
+        url: https://github.com/numactl/numactl/releases/download/v2.0.16/numactl-2.0.16.tar.gz
+        sha256: 1b242f893af977a1d31af6ce9d6b8dafdd2d8ec3dc9207f7c2dc0d3446e7c7c8
+
+  - name: boosteroid
+    buildsystem: simple
+    build-commands:
+      - cp -r . /app/main
+      - install -D /app/main/Boosteroid.svg /app/share/icons/hicolor/scalable/apps/com.boosteroid.Client.svg
+      - install -D boosteroid.desktop /app/share/applications/com.boosteroid.Client.desktop
+      - install -D start-boosteroid.sh /app/bin/start-boosteroid.sh
+    sources:
+      - type: dir
+        path: sources
+      - type: file
+        path: boosteroid.desktop
+      
+      # Launch script with data persistence
+      - type: script
+        dest-filename: start-boosteroid.sh
+        commands:
+          - |
+            #!/bin/bash
+            export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/app/lib
+
+            EXE_NAME="Boosteroid"
+            WORKDIR="$XDG_DATA_HOME/workdir"
+            mkdir -p "$WORKDIR"
+
+            # Clean old symlinks to ensure app updates apply
+            find "$WORKDIR" -maxdepth 1 -type l -delete
+            rm -f "$WORKDIR/$EXE_NAME"
+
+            # Link app files to workdir and copy executable
+            ln -s /app/main/* "$WORKDIR/"
+            rm -f "$WORKDIR/$EXE_NAME"
+            cp "/app/main/$EXE_NAME" "$WORKDIR/$EXE_NAME"
+
+            # Ensure config and logs are real files, not symlinks
+            for file in "bstr_settings.ini" "bstr_client.log"; do
+                [ -L "$WORKDIR/$file" ] && rm "$WORKDIR/$file"
+            done
+
+            # Launch
+            cd "$WORKDIR"
+            echo "Working directory: $WORKDIR"
+            exec zypak-wrapper "./$EXE_NAME" "$@"
